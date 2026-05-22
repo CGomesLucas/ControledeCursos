@@ -11,3 +11,4 @@ app.include_router(user_routes.router)
 def health():
     return {"message": "Hello World"}
 
+
