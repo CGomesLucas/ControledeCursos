@@ -23,10 +23,10 @@ def findById_users(user_id: int, db: Session = Depends(get_db)):
     return user
 
 @router.put("/{user_id}", response_model=ResponseUser)
-def findById_users(user_id: int, user: UpdateUser, db: Session = Depends(get_db)):
+def update_users(user_id: int, user: UpdateUser, db: Session = Depends(get_db)):
     new_user = db.query(UserModel).filter(UserModel.id == user_id).first()
     if not new_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
 
     for key, value in user.model_dump(exclude_unset=True).items():
         setattr(new_user, key, value)
