@@ -3,7 +3,7 @@ from app.schemas.course_schema import CourseCreate, CourseResponse, CourseUpdate
 
 router = APIRouter(prefix="/courses", tags=["Courses"])
 
-@router.get("/")
+@router.get("/",)
 def read_Courses():
     return  {"message": "Por ser um get retornaria ou uma lista de cursos local ou do banco"}
 
