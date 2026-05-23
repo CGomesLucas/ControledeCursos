@@ -1,1 +1,2 @@
 uvicorn app.main:app --reload 
+db: Session = Depends(get_db)

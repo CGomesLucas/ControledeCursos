@@ -20,37 +20,37 @@ def findById_Courses(course_id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED)
 def create_course(course: CourseCreate, db: Session = Depends(get_db)):
-    novo_curso = CourseModel(**course.model_dump(exclude={"author"}))
+    new_course = CourseModel(**course.model_dump(exclude={"author"}))
 
-    db.add(novo_curso)
+    db.add(new_course)
     db.commit()
-    db.refresh(novo_curso)
+    db.refresh(new_course)
 
-    return novo_curso
+    return new_course
 
 @router.put("/{course_id}", response_model=CourseResponse)
 def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(get_db)):
-    curso = db.query(CourseModel).filter(CourseModel.id == course_id).first()
-    if not curso:
+    new_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
+    if not cursnew_courseo:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado")
 
     for key, value in course.model_dump(exclude_unset=True).items():
-        setattr(curso, key, value)
+        setattr(new_course, key, value)
 
     db.commit()
-    db.refresh(curso)
+    db.refresh(new_course)
 
-    return curso
+    return new_course
     
 
 @router.delete("/{course_id}")
 def delete_course(course_id: int, db: Session = Depends(get_db)):
-    curso = db.query(CourseModel).filter(CourseModel.id == course_id).first()
+    course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
 
-    if not curso:
+    if not course:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado")
     
-    db.delete(curso)
+    db.delete(course)
     db.commit()
         
     return {"message": "Curso deletado com sucesso"}
