@@ -3,7 +3,12 @@ from pydantic import BaseModel, Field, EmailStr
 class CreateUser(BaseModel):
     name: str 
     email: EmailStr
-    password: int
+    password: str
+
+class UpdateUser(BaseModel):
+    name: str | None = None
+    email: EmailStr | None = None
+    password: str | None = None
 
 class ResponseUser(BaseModel):
     id: int
