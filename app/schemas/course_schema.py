@@ -33,3 +33,6 @@ class CourseResponse(BaseModel):
     activated: bool
     created_at: datetime
 
+    class Config:
+        from_attributes = True
+

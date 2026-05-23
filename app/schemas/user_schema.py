@@ -10,3 +10,6 @@ class ResponseUser(BaseModel):
     name: str
     email: EmailStr
     active: bool
+
+    class Config:
+        from_attributes = True
