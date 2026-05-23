@@ -31,7 +31,7 @@ def create_course(course: CourseCreate, db: Session = Depends(get_db)):
 @router.put("/{course_id}", response_model=CourseResponse)
 def update_course(course_id: int, course: CourseUpdate, db: Session = Depends(get_db)):
     new_course = db.query(CourseModel).filter(CourseModel.id == course_id).first()
-    if not cursnew_courseo:
+    if not new_course:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Curso não encontrado")
 
     for key, value in course.model_dump(exclude_unset=True).items():

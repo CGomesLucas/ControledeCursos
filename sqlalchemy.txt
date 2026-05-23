@@ -1,0 +1,11 @@
+SQLAlchemy:
+
+Objeto Py -> Session (rastreia mudanças) -> Flush (transforme em sql) --> Engine (envia sql ao banco) --> Commit confirma a transação
+
+Fluxo comum:
+
+session.add(user)
+session.commit()
+session.refresh(user)
+
+Queries otimizadas
