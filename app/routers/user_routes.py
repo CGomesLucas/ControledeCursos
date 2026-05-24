@@ -29,5 +29,7 @@ def create_users(user: CreateUser, db: Session = Depends(get_db)):
 @router.delete("/{user_id}")
 def delete_users(user_id: int,db: Session = Depends(get_db)):
     service = UserService()
-    return service.delete_user(user_id, db)
+    service.delete_user(user_id, db)
+
+    return {"detail": "Usuário deletado com sucesso"}
 

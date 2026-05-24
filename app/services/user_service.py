@@ -11,7 +11,12 @@ class UserService:
         self.repository = UserRepository()
     
     def get_all_users(self, db: Session) -> Sequence[UserModel]:
-        return self.repository.findAll_users(db)
+        users = self.repository.findAll_users(db)
+
+        if not users:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nenhum usuário cadastrado")
+        
+        return users
     
     def get_users_by_id(self, user_id: int, db: Session) -> UserModel:
         user = self.repository.findById_users(user_id, db)

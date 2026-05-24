@@ -10,7 +10,12 @@ class CourseService:
         self.repository = CourseRepository()
     
     def get_all_courses(self, db: Session) -> Sequence[CourseModel]:
-        return self.repository.findAll_courses(db)
+        courses = self.repository.findAll_courses(db)
+
+        if not courses:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nenhum curso cadastrado")
+        
+        return courses
     
     def get_course_by_id(self, course_id: int, db: Session) -> CourseModel:
         course = self.repository.findById_courses(course_id, db)
