@@ -3,6 +3,7 @@ from sqlalchemy import select
 from app.models.user_model import UserModel
 
 class UserRepository:
+    
     def findAll_users(self, db: Session) -> list[UserModel]:
         stmt = select(UserModel)
         users = db.scalars(stmt).all()
@@ -30,11 +31,10 @@ class UserRepository:
         return user
 
     
-    def delete_users(self, user: UserModel, db: Session) -> UserModel | None:
+    def delete_users(self, user: UserModel, db: Session) -> None:
         db.delete(user)
         db.commit()
 
-        return user
     
         
     

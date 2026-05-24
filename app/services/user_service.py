@@ -14,7 +14,11 @@ class UserService:
         return self.repository.findAll_users(db)
     
     def get_users_by_id(self, user_id: int, db: Session) -> UserModel:
-        return self.repository.findById_users(user_id, db)
+        user = self.repository.findById_users(user_id, db)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
+        
+        return user
     
     def create_user(self, user_data: CreateUser, db: Session) -> UserModel:
         user = UserModel(**user_data.model_dump())
@@ -27,11 +31,12 @@ class UserService:
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
         
-        user_update_data = UserModel(user_data.model_dump(exclude_unset=True))
-        for c, v in user_data.items():
-            setattr(user_update_data, c, v)
+        user_update_data = user_data.model_dump(exclude_unset=True)
         
-        return self.repository.update_users(user_update_data, db)
+        for c, v in user_update_data.items():
+            setattr(user, c, v)
+        
+        return self.repository.update_users(user, db)
     
     def delete_user(self, user_id: int, db: Session) -> None:
         user = self.repository.findById_users(user_id, db)
@@ -39,12 +44,4 @@ class UserService:
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
         
-        return self.repository.delete_users(user, db) 
-
-        
-
-
-    
-
-    
-        
+        self.repository.delete_users(user, db)
