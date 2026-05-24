@@ -24,15 +24,13 @@ class CourseRepository:
         return course
     
     def update_courses(self, course: CourseModel, db: Session) -> CourseModel:
-        db.add(course)
+        
         db.commit()
         db.refresh(course)
 
         return course
 
     
-    def delete_courses(self, course: CourseModel, db: Session) -> CourseModel | None:
+    def delete_courses(self, course: CourseModel, db: Session) -> None:
         db.delete(course)
         db.commit()
-
-        return course 
