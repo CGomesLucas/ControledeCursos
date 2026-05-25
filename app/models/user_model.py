@@ -9,4 +9,5 @@ class UserModel(Base):
     email = Column("email", String, unique=True, nullable=False)
     password = Column("senha", String, nullable=False)
     active = Column("active", Boolean, default=True)
+    role = Column("role", String, nullable=False, server_default='funcionario')
 
