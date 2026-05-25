@@ -1,0 +1,2427 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 3970 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F1 9.5 Tf
+0 -26 Td
+/F2 17 Tf
+(Guia completo: Autenticacao e autorizacao em APIs FastAPI com bcrypt + JWT) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Objetivo: entender e implementar, do zero, autenticacao com senha hasheada, JWT e) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(autorizacao por roles em uma API FastAPI.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Publico: pessoa que ja conhece Python/FastAPI basico, mas nunca implementou login) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(seguro.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Referencias oficiais consultadas:) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- FastAPI Security JWT: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- FastAPI Dependencies: https://fastapi.tiangolo.com/tutorial/dependencies/) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- FastAPI Global Dependencies:) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(https://fastapi.tiangolo.com/tutorial/dependencies/global-dependencies/) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- python-jose: https://python-jose.readthedocs.io/) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- bcrypt: https://pypi.org/project/bcrypt/) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(1. A visao geral) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Autenticacao responde: quem e voce-) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Autorizacao responde: o que voce pode fazer-) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Neste guia vamos construir este fluxo:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(1. Usuario se cadastra com nome, e-mail e senha.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(2. A API salva a senha com hash bcrypt, nunca em texto puro.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(3. Usuario faz login enviando e-mail e senha.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(4. API valida a senha com bcrypt.checkpw.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(5. API gera um access token JWT de curta duracao.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(6. API gera um refresh token JWT de duracao maior.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(7. Cliente envia o access token no header Authorization.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(8. API decodifica o token, identifica o usuario e consulta o banco.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(9. Rotas protegidas liberam ou bloqueiam o acesso.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(10. Rotas administrativas verificam tambem a role do usuario.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Header usado em rotas protegidas:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(Authorization: Bearer <access_token>) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Uma API segura nao confia apenas no fato de alguem conhecer uma URL. Cada rota sensivel) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(precisa declarar explicitamente sua regra de acesso.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(2. Conceitos fundamentais) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.1 Senha em texto puro) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Senha em texto puro e a senha como o usuario digitou. Exemplo:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(123456) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(minhaSenha@2026) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Nunca salve isso no banco. Se o banco vazar, todas as senhas vazam imediatamente.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.2 Hash de senha) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Hash e uma transformacao de uma entrada em uma saida aparentemente aleatoria. Para) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(senhas, usamos algoritmos lentos de proposito, como bcrypt, Argon2id ou scrypt.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Exemplo conceitual:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(senha123 -> $2b$12$QpRk...muitos_caracteres...) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 1 de 13) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3467 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(O hash nao e descriptografado. No login, voce pega a senha digitada e pergunta ao) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(bcrypt: esta senha corresponde a este hash-) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.3 Salt) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Salt e um valor aleatorio usado no processo de hash. Ele impede que duas pessoas com a) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(mesma senha tenham o mesmo hash. No bcrypt, o salt ja fica embutido no hash final.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.4 JWT) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(JWT significa JSON Web Token. Ele tem tres partes:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(header.payload.signature) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(O payload pode conter claims como:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(sub: dono do token, geralmente o id do usuario) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(role: permissao, por exemplo admin ou funcionario) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(type: access ou refresh) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(exp: data de expiracao) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(JWT e assinado, nao criptografado. O cliente consegue ler o payload. Por isso, nunca) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(coloque senha, documento, segredo ou dados muito sensiveis dentro dele.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.5 Access token) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Token usado para acessar rotas protegidas. Deve durar pouco, como 15, 30 ou 60 minutos.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.6 Refresh token) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Token usado para renovar access tokens sem pedir senha novamente. Dura mais, por exemplo) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(7 dias. Em sistemas reais, o ideal e armazenar refresh tokens no banco para permitir) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(revogacao.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(2.7 Role) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Role e o papel do usuario. Exemplos:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(admin) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(funcionario) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(aluno) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(professor) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(A role permite autorizacao. Usuario autenticado pode entrar em uma rota comum. Usuario) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(admin pode entrar em uma rota administrativa.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(3. Estrutura recomendada) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Use separacao por responsabilidade:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(app/) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  core/) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    config.py       -> le variaveis de ambiente) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    security.py     -> hash, verify, create/decode JWT) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    auth.py         -> Depends para usuario atual e role) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    database.py     -> sessao do banco) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  models/) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    user_model.py) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  repositories/) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    user_repository.py) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  services/) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    user_service.py) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  schemas/) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 2 de 13) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3349 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(    user_schema.py) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    auth_schema.py) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  routers/) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    auth_routes.py) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    user_routes.py) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    course_routes.py) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  main.py) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(security.py nao deve depender de rotas.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(auth.py pode depender de FastAPI, banco e repository.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(routers devem ser finos: recebem request, chamam services e aplicam Depends.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(services cuidam de regras de negocio.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(repositories cuidam de queries.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(4. Dependencias) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(No requirements.txt, voce precisa de algo como:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(fastapi) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(uvicorn) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(SQLAlchemy) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(pydantic-settings) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(python-jose) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(bcrypt) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(email-validator) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Instalacao manual:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(pip install fastapi uvicorn sqlalchemy pydantic-settings python-jose bcrypt email-validator) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(bcrypt sera usado para senhas.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(python-jose sera usado para JWT.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(pydantic-settings sera usado para ler .env.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(email-validator e necessario quando voce usa EmailStr no Pydantic.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(5. Arquivo .env) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(O .env deve usar sintaxe de variavel de ambiente, nao sintaxe Python.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Correto:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(SECRET_KEY=uma_chave_grande_e_aleatoria) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(ACCESS_TOKEN_EXPIRE_MINUTES=30) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(REFRESH_TOKEN_EXPIRE_DAYS=7) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(ALGORITHM=HS256) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Errado:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(ACCESS_TOKEN_EXPIRE_MINUTES: int = 30) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(ALGORITHM = HS256) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Para gerar SECRET_KEY:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(python -c "import secrets; print\(secrets.token_hex\(64\)\)") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Regra importante: nao suba .env com segredo real para repositorio publico.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(6. app/core/config.py) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 3 de 13) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 3602 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Codigo recomendado:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from pydantic_settings import BaseSettings, SettingsConfigDict) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class Settings\(BaseSettings\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    secret_key: str) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    access_token_expire_minutes: int) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    refresh_token_expire_days: int) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    algorithm: str = "HS256") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    model_config = SettingsConfigDict\(env_file=".env", env_file_encoding="utf-8"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(settings = Settings\(\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Explicacao:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(BaseSettings procura as variaveis no ambiente e no .env.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(secret_key recebe SECRET_KEY.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(access_token_expire_minutes recebe ACCESS_TOKEN_EXPIRE_MINUTES.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(refresh_token_expire_days recebe REFRESH_TOKEN_EXPIRE_DAYS.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(algorithm recebe ALGORITHM.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Se os nomes nao baterem, sua aplicacao quebra ao subir.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(7. app/core/security.py) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Este arquivo contem as funcoes criptograficas e de JWT.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from datetime import datetime, timedelta, timezone) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from typing import Optional) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(import bcrypt) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from jose import JWTError, jwt) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.config import settings) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def hash_password\(password: str\) -> str:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    password_bytes = password.encode\("utf-8"\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    salt = bcrypt.gensalt\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    hashed = bcrypt.hashpw\(password_bytes, salt\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return hashed.decode\("utf-8"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def verify_password\(plain_password: str, hashed_password: str\) -> bool:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return bcrypt.checkpw\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        plain_password.encode\("utf-8"\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        hashed_password.encode\("utf-8"\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def create_token\(data: dict, expires_delta: timedelta\) -> str:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    payload = data.copy\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    payload["exp"] = datetime.now\(timezone.utc\) + expires_delta) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return jwt.encode\(payload, settings.secret_key, algorithm=settings.algorithm\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def create_access_token\(user_id: int, role: str\) -> str:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return create_token\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        {"sub": str\(user_id\), "role": role, "type": "access"},) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        timedelta\(minutes=settings.access_token_expire_minutes\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 4 de 13) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 3699 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(def create_refresh_token\(user_id: int\) -> str:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return create_token\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        {"sub": str\(user_id\), "type": "refresh"},) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        timedelta\(days=settings.refresh_token_expire_days\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def decode_token\(token: str\) -> Optional[dict]:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    try:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return jwt.decode\(token, settings.secret_key, algorithms=[settings.algorithm]\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    except JWTError:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return None) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Pontos importantes:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(- hash_password e usado antes de salvar senha.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- verify_password e usado no login.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- create_access_token inclui role porque autorizacao depende dela.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- create_refresh_token nao precisa incluir role.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- decode_token valida assinatura e expiracao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- Se o token estiver adulterado ou expirado, decode_token retorna None.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(8. UserModel com role) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Exemplo:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy import Boolean, Column, Integer, String) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.database import Base) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class UserModel\(Base\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    __tablename__ = "users") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    id = Column\(Integer, primary_key=True, autoincrement=True\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    name = Column\(String, nullable=False\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    email = Column\(String, unique=True, nullable=False\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    password = Column\("senha", String, nullable=False\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    active = Column\(Boolean, default=True\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    role = Column\(String, nullable=False, default="funcionario", server_default="funcionario"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(active permite desativar usuario.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(role permite autorizacao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(server_default ajuda o banco.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(default ajuda o SQLAlchemy.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Se voce adicionou role depois da tabela existir, crie/rode migration:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(alembic revision --autogenerate -m "add role to user model") Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(alembic upgrade head) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(9. Schemas de usuario) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from typing import Literal) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from pydantic import BaseModel, EmailStr) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class CreateUser\(BaseModel\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    name: str) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    email: EmailStr) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    password: str) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class UpdateUser\(BaseModel\):) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 5 de 13) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 3722 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(    name: str | None = None) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    email: EmailStr | None = None) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    password: str | None = None) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    active: bool | None = None) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    role: Literal["admin", "funcionario"] | None = None) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class ResponseUser\(BaseModel\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    id: int) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    name: str) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    email: EmailStr) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    active: bool) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    role: str) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    class Config:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        from_attributes = True) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Nunca inclua password no ResponseUser. Nem senha pura, nem hash.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(10. Repository: buscar por e-mail) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(O login precisa encontrar usuario por e-mail.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy import select) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy.orm import Session) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.models.user_model import UserModel) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class UserRepository:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    def findById_users\(self, user_id: int, db: Session\) -> UserModel | None:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        stmt = select\(UserModel\).where\(UserModel.id == user_id\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return db.scalar\(stmt\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    def findByEmail_users\(self, email: str, db: Session\) -> UserModel | None:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        stmt = select\(UserModel\).where\(UserModel.email == email\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return db.scalar\(stmt\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    def create_users\(self, user: UserModel, db: Session\) -> UserModel:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        db.add\(user\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        db.commit\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        db.refresh\(user\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return user) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(A repository nao deve verificar senha. Ela so consulta e persiste dados.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(11. Service: hash antes de salvar) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from fastapi import HTTPException, status) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy.orm import Session) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.security import hash_password) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.models.user_model import UserModel) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.repositories.user_repository import UserRepository) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.schemas.user_schema import CreateUser, UpdateUser) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class UserService:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    def __init__\(self\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        self.repository = UserRepository\(\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    def create_user\(self, user_data: CreateUser, db: Session\) -> UserModel:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        existing = self.repository.findByEmail_users\(user_data.email, db\)) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 6 de 13) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 3909 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(        if existing:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            raise HTTPException\(status_code=400, detail="E-mail ja cadastrado"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(        user_dict = user_data.model_dump\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        user_dict["password"] = hash_password\(user_dict["password"]\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        user = UserModel\(**user_dict\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return self.repository.create_users\(user, db\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    def update_user\(self, user_id: int, user_data: UpdateUser, db: Session\) -> UserModel:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        user = self.repository.findById_users\(user_id, db\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        if not user:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            raise HTTPException\(status_code=404, detail="Usuario nao encontrado"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(        update_data = user_data.model_dump\(exclude_unset=True\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        if "password" in update_data:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            update_data["password"] = hash_password\(update_data["password"]\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(        for field, value in update_data.items\(\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            setattr\(user, field, value\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(        return self.repository.update_users\(user, db\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Se voce ja tem usuarios antigos com senha em texto puro, o login com bcrypt nao vai) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(funcionar para eles. Recrie os usuarios ou atualize as senhas passando pelo fluxo com) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(hash.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(12. Schemas de autenticacao) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Crie app/schemas/auth_schema.py:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from pydantic import BaseModel, EmailStr) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class LoginRequest\(BaseModel\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    email: EmailStr) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    password: str) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class RefreshTokenRequest\(BaseModel\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    refresh_token: str) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(class TokenResponse\(BaseModel\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    access_token: str) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    refresh_token: str) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    token_type: str = "bearer") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(LoginRequest e entrada do login.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(RefreshTokenRequest e entrada da renovacao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(TokenResponse e saida padrao.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(13. app/core/auth.py) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Este arquivo conecta JWT ao sistema de dependencias do FastAPI.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from collections.abc import Callable) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from fastapi import Depends, HTTPException, status) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy.orm import Session) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.database import get_db) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.security import decode_token) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.models.user_model import UserModel) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 7 de 13) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 3941 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(from app.repositories.user_repository import UserRepository) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(bearer_scheme = HTTPBearer\(\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def get_current_user\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    credentials: HTTPAuthorizationCredentials = Depends\(bearer_scheme\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    db: Session = Depends\(get_db\),) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(\) -> UserModel:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    payload = decode_token\(credentials.credentials\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not payload or payload.get\("type"\) != "access":) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            status_code=status.HTTP_401_UNAUTHORIZED,) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            detail="Token invalido ou expirado",) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            headers={"WWW-Authenticate": "Bearer"},) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    user_id = payload.get\("sub"\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not user_id:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\(status_code=401, detail="Token invalido"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    user = UserRepository\(\).findById_users\(int\(user_id\), db\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not user or not user.active:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\(status_code=401, detail="Usuario inativo ou nao encontrado"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    return user) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(def require_role\(*roles: str\) -> Callable:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    def role_checker\(current_user: UserModel = Depends\(get_current_user\)\) -> UserModel:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        if current_user.role not in roles:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            raise HTTPException\(status_code=403, detail="Sem permissao"\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        return current_user) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    return role_checker) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Como pensar nisso:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(get_current_user transforma token em usuario.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(require_role transforma usuario em permissao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Depends executa essas funcoes antes da rota.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Por que buscar usuario no banco se o token ja tem sub e role-) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Porque o usuario pode ter sido desativado depois do token ser emitido. Tambem porque a) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(role pode ter mudado. O token e uma credencial temporaria, mas o banco e a fonte atual) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(de verdade.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(14. Rotas de auth) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Crie app/routers/auth_routes.py:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from fastapi import APIRouter, Depends, HTTPException, status) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from sqlalchemy.orm import Session) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.auth import get_current_user) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.database import get_db) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.core.security import create_access_token, create_refresh_token, decode_token,) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(verify_password) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.models.user_model import UserModel) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.repositories.user_repository import UserRepository) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.schemas.auth_schema import LoginRequest, RefreshTokenRequest, TokenResponse) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 8 de 13) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 4013 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(from app.schemas.user_schema import ResponseUser) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(router = APIRouter\(prefix="/auth", tags=["Auth"]\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@router.post\("/login", response_model=TokenResponse\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def login\(credentials: LoginRequest, db: Session = Depends\(get_db\)\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    user = UserRepository\(\).findByEmail_users\(credentials.email, db\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not user or not verify_password\(credentials.password, user.password\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            status_code=status.HTTP_401_UNAUTHORIZED,) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            detail="E-mail ou senha invalidos",) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(            headers={"WWW-Authenticate": "Bearer"},) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not user.active:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\(status_code=403, detail="Usuario inativo"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    return TokenResponse\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        access_token=create_access_token\(user.id, user.role\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        refresh_token=create_refresh_token\(user.id\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@router.post\("/refresh", response_model=TokenResponse\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def refresh_token\(token_data: RefreshTokenRequest, db: Session = Depends\(get_db\)\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    payload = decode_token\(token_data.refresh_token\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not payload or payload.get\("type"\) != "refresh":) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\(status_code=401, detail="Refresh token invalido ou expirado"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    user = UserRepository\(\).findById_users\(int\(payload["sub"]\), db\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    if not user or not user.active:) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        raise HTTPException\(status_code=401, detail="Usuario inativo ou nao encontrado"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(    return TokenResponse\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        access_token=create_access_token\(user.id, user.role\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(        refresh_token=create_refresh_token\(user.id\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    \)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@router.get\("/me", response_model=ResponseUser\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def me\(current_user: UserModel = Depends\(get_current_user\)\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return current_user) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(/login autentica.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(/refresh renova tokens.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(/me mostra quem esta logado.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Nao responda "e-mail nao encontrado" no login. Use mensagem generica para nao facilitar) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(descoberta de usuarios cadastrados.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(15. Registrar no main.py) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(from fastapi import FastAPI) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(from app.routers import auth_routes, course_routes, user_routes) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(app = FastAPI\(title="Cadastro de Cursos"\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(app.include_router\(auth_routes.router\)) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(app.include_router\(course_routes.router\)) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(app.include_router\(user_routes.router\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@app.get\("/"\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def health\(\):) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 9 de 13) Tj ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 3569 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F3 8.2 Tf
+(    return {"message": "Hello World"}) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Depois disso, /auth/login deve aparecer no Swagger.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(16. Protecao de rotas) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Regra sugerida:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(POST /users/           publico) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(GET /users/            admin) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(GET /users/{id}        admin) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(PUT /users/{id}        admin) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(DELETE /users/{id}     admin) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(GET /courses/          usuario logado) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(GET /courses/{id}      usuario logado) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(POST /courses/         admin) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(PUT /courses/{id}      admin) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(DELETE /courses/{id}   admin) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Exemplo de rota apenas autenticada:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@router.get\("/", response_model=list[CourseResponse]\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def findAll_Courses\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    db: Session = Depends\(get_db\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    current_user = Depends\(get_current_user\),) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    service = CourseService\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return service.get_all_courses\(db\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Exemplo de rota apenas admin:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(@router.post\("/", response_model=CourseResponse, status_code=status.HTTP_201_CREATED\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(def create_course\() Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    course: CourseCreate,) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    db: Session = Depends\(get_db\),) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    current_user = Depends\(require_role\("admin"\)\),) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(\):) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    service = CourseService\(\)) Tj
+0 -11.2 Td
+/F3 8.2 Tf
+(    return service.create_course\(course, db\)) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Mesmo que current_user nao apareca no corpo da funcao, ele e necessario para forcar a) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(dependencia a rodar.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(17. Primeiro admin) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Se todo usuario nasce funcionario, voce precisa criar o primeiro admin.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Opcoes:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(1. Criar usuario comum e alterar role direto no SQLite em desenvolvimento.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(2. Criar seed inicial.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(3. Criar comando administrativo.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(4. Permitir role no cadastro apenas em ambiente local.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(SQL conceitual:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(UPDATE users SET role = 'admin' WHERE email = 'lucas@example.com';) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Em producao, nunca deixe qualquer pessoa se cadastrar como admin.) Tj
+0 -8 Td
+/F1 9.5 Tf
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 10 de 13) Tj ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 3420 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(18. Testes no Swagger) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Rode:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(uvicorn app.main:app --reload) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Abra:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(http://127.0.0.1:8000/docs) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Fluxo:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(1. POST /users/ cria usuario.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(2. Promova o usuario para admin se necessario.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(3. POST /auth/login retorna access_token e refresh_token.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(4. Clique em Authorize.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(5. Cole: Bearer <access_token>) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(6. Teste GET /courses/.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(7. Teste POST /courses/.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(8. Teste sem token.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(9. Teste com usuario funcionario em rota admin.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(10. Teste /auth/refresh com refresh token.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Resultados esperados:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Sem token: 401 ou 403, dependendo do esquema.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Token invalido: 401.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Token valido sem role: 403.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Token valido com role correta: sucesso.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(19. Testes com cURL) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Criar usuario:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(curl -X POST http://127.0.0.1:8000/users/ ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -H "Content-Type: application/json" ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -d "{\\"name\\":\\"Lucas\\",\\"email\\":\\"lucas@example.com\\",\\"password\\":\\"123456\\"}") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Login:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(curl -X POST http://127.0.0.1:8000/auth/login ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -H "Content-Type: application/json" ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -d "{\\"email\\":\\"lucas@example.com\\",\\"password\\":\\"123456\\"}") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Rota protegida:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(curl http://127.0.0.1:8000/courses/ ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -H "Authorization: Bearer SEU_ACCESS_TOKEN") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Refresh:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -11.2 Td
+/F3 8.2 Tf
+(curl -X POST http://127.0.0.1:8000/auth/refresh ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -H "Content-Type: application/json" ^) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(  -d "{\\"refresh_token\\":\\"SEU_REFRESH_TOKEN\\"}") Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(20. Erros comuns) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(Erro: ModuleNotFoundError: No module named 'config') Tj
+0 -8 Td
+/F1 9.5 Tf
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 11 de 13) Tj ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 3431 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F1 9.5 Tf
+(Causa: import errado.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Solucao: use from app.core.config import settings.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(Erro: senha correta nao faz login) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Causas provaveis:) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- senha antiga foi salva em texto puro;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- voce esqueceu de hashear no cadastro;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- esta comparando hash com hash, ou texto com texto, de forma errada.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(Erro: token sempre invalido) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Causas provaveis:) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- SECRET_KEY mudou;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- ALGORITHM mudou;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- token expirou;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- token foi copiado incompleto;) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(- voce esta usando refresh token em rota que exige access token.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(Erro: admin recebe 403) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Causa: role no banco nao e admin.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Solucao: confira a coluna role.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(Erro: ResponseValidationError em usuario) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Causa: ResponseUser pede campo que nao existe no model ou no banco.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Solucao: rode migration ou ajuste schema.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(21. Checklist completo) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Corrigir .env.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar Settings em config.py.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Implementar hash_password.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Implementar verify_password.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Implementar create_access_token.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Implementar create_refresh_token.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Implementar decode_token.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Garantir coluna role no UserModel.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Rodar migration da role.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Remover password dos schemas de resposta.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Hashear senha no create_user.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Hashear senha no update_user.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Buscar usuario por e-mail no repository.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar LoginRequest.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar RefreshTokenRequest.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar TokenResponse.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar get_current_user.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar require_role.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar /auth/login.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar /auth/refresh.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar /auth/me.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Registrar auth_routes no main.py.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Proteger rotas de courses.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Proteger rotas de users.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Criar/promover primeiro admin.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Testar sem token.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Testar com token valido.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Testar usuario sem permissao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+([ ] Testar refresh.) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 12 de 13) Tj ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 26 0 R >>
+endobj
+28 0 obj
+<< /Length 2233 >>
+stream
+BT
+/F2 18 Tf
+48 790 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(22. Melhorias de producao) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Para producao, esta base deve evoluir:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F2 9.5 Tf
+(1. Salvar refresh tokens no banco.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(2. Revogar refresh token no logout.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(3. Rotacionar refresh token a cada renovacao.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(4. Usar HTTPS sempre.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(5. Implementar rate limit no login.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(6. Criar politica de senha.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(7. Registrar tentativas suspeitas.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(8. Separar roles e permissions em tabelas se crescer.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(9. Criar testes automatizados.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(10. Nao versionar segredo real.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(11. Considerar Argon2id em novos projetos.) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(12. Usar scopes OAuth2 se a autorizacao ficar granular.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -12.5 Td
+/F2 9.5 Tf
+(23. Modelo mental final) Tj
+0 -15 Td
+/F2 8 Tf
+(------------------------------------------------------------------------------) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Pense assim:) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(hash_password protege o banco.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(verify_password protege o login.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(create_access_token cria uma identidade temporaria.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(decode_token valida essa identidade.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(get_current_user transforma token em usuario real.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(require_role transforma usuario real em permissao.) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(Depends conecta essas regras nas rotas.) Tj
+0 -8 Td
+/F1 9.5 Tf
+0 -12.5 Td
+/F1 9.5 Tf
+(Se voce entende esse encadeamento, entende o nucleo da autenticacao e autorizacao em) Tj
+0 -12.5 Td
+/F1 9.5 Tf
+(APIs FastAPI.) Tj
+ET
+BT /F1 8 Tf 500.28 28 Td (Pagina 13 de 13) Tj ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 30 0 R /MediaBox [0 0 595.28 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R /F3 3 0 R >> >> /Contents 28 0 R >>
+endobj
+30 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R] /Count 13 >>
+endobj
+31 0 obj
+<< /Type /Catalog /Pages 30 0 R >>
+endobj
+xref
+0 32
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000000160 00000 n 
+0000000228 00000 n 
+0000004249 00000 n 
+0000004402 00000 n 
+0000007920 00000 n 
+0000008073 00000 n 
+0000011473 00000 n 
+0000011626 00000 n 
+0000015280 00000 n 
+0000015435 00000 n 
+0000019186 00000 n 
+0000019341 00000 n 
+0000023115 00000 n 
+0000023270 00000 n 
+0000027231 00000 n 
+0000027386 00000 n 
+0000031379 00000 n 
+0000031534 00000 n 
+0000035599 00000 n 
+0000035754 00000 n 
+0000039375 00000 n 
+0000039530 00000 n 
+0000043002 00000 n 
+0000043157 00000 n 
+0000046640 00000 n 
+0000046795 00000 n 
+0000049080 00000 n 
+0000049235 00000 n 
+0000049376 00000 n 
+trailer
+<< /Size 32 /Root 31 0 R >>
+startxref
+49427
+%%EOF
