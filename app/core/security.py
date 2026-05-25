@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import jwt, JWTError
 import bcrypt
-from config import settings
+from app.core.config import settings
 
 """
 1 - Função Hash de Senha
@@ -45,7 +45,7 @@ def create_token(data: dict, experies_delta: timedelta) -> str:
 - Token é enviado nas requisições subsequentes para autorizar o acesso às rotas protegidas da API.
 """
 
-def create_acess_token(user_id: int, role: str) -> str:
+def create_access_token(user_id: int, role: str) -> str:
     return create_token(
         {"sub": str(user_id), "role": role, "type": "access"},
         timedelta(minutes=settings.access_token_expire_minutes),
@@ -62,7 +62,7 @@ def create_acess_token(user_id: int, role: str) -> str:
 def create_refresh_token(user_id: int) -> str:
     return create_token(
         {"sub": str(user_id), "type": "refresh"},
-        timedelta(days=settings.access_token_expire_days),
+        timedelta(days=settings.refresh_token_expire_days),
 
         )
 
