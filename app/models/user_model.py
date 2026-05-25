@@ -7,7 +7,7 @@ class UserModel(Base):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     name = Column("name", String, nullable=False)
     email = Column("email", String, unique=True, nullable=False)
-    password = Column("senha", String, nullable=False)
+    hash_password = Column("hash_password", String, nullable=False)
     active = Column("active", Boolean, default=True)
     role = Column("role", String, nullable=False, server_default='funcionario')
 

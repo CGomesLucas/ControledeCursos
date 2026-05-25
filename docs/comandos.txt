@@ -5,6 +5,7 @@ Alembic
 
 alembic init alembic
 alembic revision --autogenerate -m ""
+alembic upgrade head
 
 Requirements:
 
