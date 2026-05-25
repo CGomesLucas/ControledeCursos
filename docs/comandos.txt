@@ -6,3 +6,8 @@ Alembic
 alembic init alembic
 alembic revision --autogenerate -m ""
 
+Requirements:
+
+pip freeze > requirements.txt
+
+
