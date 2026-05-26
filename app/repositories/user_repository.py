@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from pydantic import EmailStr
 from app.models.user_model import UserModel
 
 class UserRepository:
@@ -12,6 +13,12 @@ class UserRepository:
     
     def findById_users(self, user_id: int, db: Session) -> UserModel | None: 
         stmt = select(UserModel).where(UserModel.id == user_id)
+        user = db.scalar(stmt)
+
+        return user
+    
+    def findbyEmail_users(self, user_email: EmailStr, db: Session) -> UserModel | None:
+        stmt = select(UserModel).where(UserModel.email == user_email)
         user = db.scalar(stmt)
 
         return user

@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from pydantic import EmailStr
 from typing import Sequence
 from app.models.user_model import UserModel
 from sqlalchemy.orm import Session
@@ -22,6 +23,13 @@ class UserService:
         user = self.repository.findById_users(user_id, db)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
+        
+        return user
+    
+    def get_users_by_email(self, user_email: EmailStr, db: Session) -> UserModel:
+        user = self.repository.findbyEmail_users(user_email, db)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="E-mail não encontrado")
         
         return user
     
