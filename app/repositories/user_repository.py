@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.user_model import UserModel
+from app.core.security import hash_password
 
 class UserRepository:
     
@@ -16,7 +17,7 @@ class UserRepository:
 
         return user
     
-    def create_users(self, user: UserModel, db: Session) -> UserModel: 
+    def create_users(self, user: UserModel, db: Session) -> UserModel:
         db.add(user)
         db.commit()
         db.refresh(user)

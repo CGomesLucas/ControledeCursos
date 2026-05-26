@@ -11,7 +11,7 @@ from app.core.config import settings
 - Gere o hash utilizando bcrypt
 - Retorne o hash gerado como str 
 """
-def hash_password(password: str) -> str:
+def hashed_password(password: str) -> str:
     password_bytes = password.encode()
     salt_bytes = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password_bytes, salt_bytes)

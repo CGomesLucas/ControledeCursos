@@ -4,6 +4,7 @@ from app.models.user_model import UserModel
 from sqlalchemy.orm import Session
 from app.schemas.user_schema import CreateUser, UpdateUser
 from app.repositories.user_repository import UserRepository
+from app.core.security import hashed_password
 
 
 class UserService:
@@ -26,7 +27,15 @@ class UserService:
         return user
     
     def create_user(self, user_data: CreateUser, db: Session) -> UserModel:
-        user = UserModel(**user_data.model_dump())
+        user_dict = user_data.model_dump()
+
+        password_pop = user_dict.pop("password")
+        password_hash = hashed_password(password_pop)
+
+        user = UserModel(
+            **user_dict,
+            hash_password = password_hash
+        )
         
         return self.repository.create_users(user, db)
     
