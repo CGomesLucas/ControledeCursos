@@ -18,17 +18,7 @@ class UserRepository:
 
         return user
     
-<<<<<<< HEAD
     def create_users(self, user: UserModel, db: Session) -> UserModel:
-=======
-    def findbyEmail_users(self, user_email: EmailStr, db: Session) -> UserModel | None:
-        stmt = select(UserModel).where(UserModel.email == user_email)
-        user = db.scalar(stmt)
-
-        return user
-    
-    def create_users(self, user: UserModel, db: Session) -> UserModel: 
->>>>>>> b0c16c9803475fd01fe59639c63e815b66612f9e
         db.add(user)
         db.commit()
         db.refresh(user)
