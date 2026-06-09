@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.user_model import UserModel
-from app.core.security import hash_password
+from app.core.security import hashed_password
 
 class UserRepository:
     
