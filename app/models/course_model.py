@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Foreig
 from sqlalchemy.orm import relationship, Mapped
 from datetime import datetime
 from app.core.database import Base
-from app.models.learning_path_has_course import learning_path_has_course
+from app.models.learningpath_hascourse import learning_path_has_course
 
 if TYPE_CHECKING:
     from app.models.learning_path import LearningPathModel

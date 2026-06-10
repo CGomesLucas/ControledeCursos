@@ -26,7 +26,9 @@ if config.config_file_name is not None:
 from app.core.database import Base
 from app.models.user_model import UserModel
 from app.models.course_model import CourseModel
-from app.models.learning_path_has_course import learning_path_has_course
+from app.models.learning_path import LearningPathModel
+from app.models.learningpath_hascourse import learning_path_has_course
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
