@@ -27,6 +27,7 @@ from app.core.database import Base
 from app.models.user_model import UserModel
 from app.models.course_model import CourseModel
 from app.models.learning_path import LearningPathModel
+from app.models.module_model import ModuleModel
 from app.models.learningpath_hascourse import learning_path_has_course
 
 target_metadata = Base.metadata
